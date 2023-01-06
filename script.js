@@ -53,8 +53,8 @@ const getTimeInfo = (locationData) => {
         const sunsetTime = convertUnixtoTime(sunsetUnix)
         const unixCurTime = locationData.dt
         const standCurTime = convertUnixtoTime(unixCurTime)
-    } catch {
-        console.log("Sunset/Sunrise data not available")
+    } catch (e) {
+        console.log("Time data not available", e)
     }
 }
 
