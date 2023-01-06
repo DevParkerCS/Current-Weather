@@ -1,6 +1,7 @@
 const searchBtn = document.querySelector(".search-btn")
 const searchForm = document.querySelector(".searchForm")
 
+// takes in input value as param.  Sends to api and get's data back.
 const getLocationData = async (location) => {
     try {
         await axios.get(`http://api.openweathermap.org/geo/1.0/direct?q=${location}&limit=1&appid=${config.MY_KEY}`)
@@ -14,20 +15,27 @@ const getLocationData = async (location) => {
     }
 }
 
+// Expects location data to be passed from getLocationData().  Extracts lat. and lon. from this data.
 const getLatLong = (locationData) => {
-    const locationLatitude = locationData[0].lat
-    const locationLongitude = locationData[0].lon
-    console.log(locationLatitude, locationLongitude)
-    getWeatherInfo(locationLatitude, locationLongitude)
+    try {
+        const locationLatitude = locationData[0].lat
+        const locationLongitude = locationData[0].lon
+        console.log(locationLatitude, locationLongitude)
+        getWeatherInfo(locationLatitude, locationLongitude)
+    } catch {
+        console.log("Lat/Lon Info Unavailable")
+    }
 }
 
+// Expects latitude and longitude param passed from getLatLong().  Finds weather info from api with given coords.
 const getWeatherInfo = async (latitude, longitude) => {
     console.log(latitude, longitude)
     try {
         await axios.get(`http://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=imperial&appid=${config.MY_KEY}`)
             .then((response) => {
                 console.log(response)
-                getSunTimeInfo(response.data.sys)
+                getTimeInfo(response.data.sys)
+                getCurrentTime(response.data)
             })
     }
     catch (e) {
@@ -36,12 +44,18 @@ const getWeatherInfo = async (latitude, longitude) => {
 }
 
 
-// Gets the sunrise and sunset time from the api data
-const getSunTimeInfo = (locationData) => {
-    const sunriseUnix = locationData.sunrise
-    const sunriseTime = convertUnixtoTime(sunriseUnix)
-    const sunsetUnix = locationData.sunset
-    const sunsetTime = convertUnixtoTime(sunsetUnix)
+// Extracts all time related data from the api data
+const getTimeInfo = (locationData) => {
+    try {
+        const sunriseUnix = locationData.sunrise
+        const sunriseTime = convertUnixtoTime(sunriseUnix)
+        const sunsetUnix = locationData.sunset
+        const sunsetTime = convertUnixtoTime(sunsetUnix)
+        const unixCurTime = locationData.dt
+        const standCurTime = convertUnixtoTime(unixCurTime)
+    } catch {
+        console.log("Sunset/Sunrise data not available")
+    }
 }
 
 // Expects a parameter in Unix time and turns it into standard local Time
@@ -62,7 +76,7 @@ const convertUnixtoTime = (unixTime) => {
     }
 }
 
-// Expects a Int parameter from convertUnixtoTime() and decides if time is AM or PM
+// Expects an Int parameter from convertUnixtoTime() and decides if time is AM or PM
 const decypherAmPm = (time) => {
     if (time > 12) { time = "PM" }
     else { time = "AM" }
